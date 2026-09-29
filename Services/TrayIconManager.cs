@@ -30,7 +30,7 @@ public class TrayIconManager : IDisposable
         _notifyIcon = new NotifyIcon
         {
             Visible = true,
-            Text = "EyeCare - Göz ve Duruş Takipçisi"
+            Text = "EyeCare Crimson - Göz ve Duruş Takipçisi"
         };
 
         BuildContextMenu();
@@ -46,8 +46,11 @@ public class TrayIconManager : IDisposable
         var itemOpen = new ToolStripMenuItem("👁 Uygulamayı Aç", null, (s, e) => _onOpenWindow());
         itemOpen.Font = new Font(itemOpen.Font, FontStyle.Bold);
 
+        var itemModeHourly = new ToolStripMenuItem("⏱ 1 Saatlik Seans Modu", null, (s, e) => _timer.SwitchProfile(TimerProfile.HourlySitting));
+        var itemMode20 = new ToolStripMenuItem("👁 20-20-20 Göz Kuralı Modu", null, (s, e) => _timer.SwitchProfile(TimerProfile.Rule202020));
+
         var itemPause = new ToolStripMenuItem("⏸ Duraklat / Devam Et", null, (s, e) => _timer.TogglePause());
-        var itemBreak = new ToolStripMenuItem("☕ Mola Ver (5 Dk)", null, (s, e) => _timer.StartBreak(5));
+        var itemBreak = new ToolStripMenuItem("☕ Mola Ver", null, (s, e) => _timer.StartBreak());
         var itemExt5 = new ToolStripMenuItem("⏳ +5 Dk Uzat", null, (s, e) => _timer.ExtendSession(5));
         var itemExt10 = new ToolStripMenuItem("⏳ +10 Dk Uzat", null, (s, e) => _timer.ExtendSession(10));
         var itemReset = new ToolStripMenuItem("🔄 Oturumu Sıfırla", null, (s, e) => _timer.ResetSession());
@@ -55,6 +58,9 @@ public class TrayIconManager : IDisposable
         var itemExit = new ToolStripMenuItem("❌ Çıkış", null, (s, e) => _onExit());
 
         menu.Items.Add(itemOpen);
+        menu.Items.Add(new ToolStripSeparator());
+        menu.Items.Add(itemModeHourly);
+        menu.Items.Add(itemMode20);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(itemBreak);
         menu.Items.Add(itemExt5);
@@ -83,26 +89,27 @@ public class TrayIconManager : IDisposable
         System.Drawing.Color dotColor;
         if (isIdle || mode == TimerMode.Paused)
         {
-            dotColor = System.Drawing.Color.FromArgb(156, 163, 175); // Gray
+            dotColor = System.Drawing.Color.FromArgb(107, 114, 128); // Slate Gray
         }
         else if (mode == TimerMode.Break)
         {
-            dotColor = System.Drawing.Color.FromArgb(99, 102, 241); // Indigo
+            dotColor = System.Drawing.Color.FromArgb(225, 29, 72); // Ruby Rose
         }
         else if (mode == TimerMode.Overtime)
         {
-            dotColor = System.Drawing.Color.FromArgb(239, 68, 68); // Red
+            dotColor = System.Drawing.Color.FromArgb(239, 68, 68); // Vivid Red
         }
         else
         {
             int rem = _timer.State.RemainingWorkingSeconds;
-            if (rem <= 10 * 60)
+            int warningThreshold = (_timer.State.Profile == TimerProfile.Rule202020) ? 60 : 10 * 60;
+            if (rem <= warningThreshold)
             {
-                dotColor = System.Drawing.Color.FromArgb(245, 158, 11); // Amber
+                dotColor = System.Drawing.Color.FromArgb(249, 115, 22); // Orange Flame
             }
             else
             {
-                dotColor = System.Drawing.Color.FromArgb(16, 185, 129); // Emerald Green
+                dotColor = System.Drawing.Color.FromArgb(220, 38, 38); // Crimson Red
             }
         }
 
@@ -113,14 +120,15 @@ public class TrayIconManager : IDisposable
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.Clear(System.Drawing.Color.Transparent);
 
-            // Draw eye / circular ring
-            using var bgBrush = new SolidBrush(System.Drawing.Color.FromArgb(28, 32, 42));
+            // Background circle
+            using var bgBrush = new SolidBrush(System.Drawing.Color.FromArgb(10, 10, 14));
             g.FillEllipse(bgBrush, 0, 0, 15, 15);
 
+            // Crimson Ring
             using var ringPen = new Pen(dotColor, 2f);
             g.DrawEllipse(ringPen, 1, 1, 13, 13);
 
-            // Pupil / center dot
+            // Pupil
             using var dotBrush = new SolidBrush(dotColor);
             g.FillEllipse(dotBrush, 5, 5, 5, 5);
         }

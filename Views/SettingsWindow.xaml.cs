@@ -1,6 +1,5 @@
 using System;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using eyecarebyzewzack.Models;
 using eyecarebyzewzack.Services;
@@ -32,11 +31,23 @@ public partial class SettingsWindow : Window
 
     private void LoadSettings()
     {
+        // Always on top
+        ChkAlwaysOnTop.IsChecked = _settings.AlwaysOnTop;
+
+        // AMOLED Mode
+        ChkAmoled.IsChecked = _settings.AmoledMode;
+
+        // Default mode
+        SelectComboBoxByTag(CmbDefaultMode, _settings.ActiveProfile.ToString());
+
         // Work duration
         SelectComboBoxByTag(CmbWorkDuration, _settings.WorkDurationMinutes.ToString());
 
         // Break duration
         SelectComboBoxByTag(CmbBreakDuration, _settings.BreakDurationMinutes.ToString());
+
+        // 20-20-20 rest duration
+        SelectComboBoxByTag(CmbEyeRestDuration, _settings.EyeRestDurationSeconds.ToString());
 
         // Idle
         ChkIdleDetect.IsChecked = _settings.IdleDetectionEnabled;
@@ -66,6 +77,15 @@ public partial class SettingsWindow : Window
 
     private void BtnSave_Click(object sender, RoutedEventArgs e)
     {
+        _settings.AlwaysOnTop = ChkAlwaysOnTop.IsChecked ?? false;
+        _settings.AmoledMode = ChkAmoled.IsChecked ?? true;
+
+        if (CmbDefaultMode.SelectedItem is ComboBoxItem modeItem &&
+            Enum.TryParse<TimerProfile>(modeItem.Tag?.ToString(), out var profile))
+        {
+            _settings.ActiveProfile = profile;
+        }
+
         if (CmbWorkDuration.SelectedItem is ComboBoxItem workItem &&
             int.TryParse(workItem.Tag?.ToString(), out int workMinutes))
         {
@@ -76,6 +96,12 @@ public partial class SettingsWindow : Window
             int.TryParse(breakItem.Tag?.ToString(), out int breakMinutes))
         {
             _settings.BreakDurationMinutes = breakMinutes;
+        }
+
+        if (CmbEyeRestDuration.SelectedItem is ComboBoxItem eyeItem &&
+            int.TryParse(eyeItem.Tag?.ToString(), out int eyeSeconds))
+        {
+            _settings.EyeRestDurationSeconds = eyeSeconds;
         }
 
         _settings.IdleDetectionEnabled = ChkIdleDetect.IsChecked ?? true;

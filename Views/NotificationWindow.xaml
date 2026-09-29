@@ -11,13 +11,13 @@
         ShowActivated="False"
         ResizeMode="NoResize">
     
-    <Border Background="#181A20" 
-            BorderBrush="#313645" 
-            BorderThickness="1" 
+    <Border Background="#090A0F" 
+            BorderBrush="#4A121A" 
+            BorderThickness="1.2" 
             CornerRadius="14" 
             Margin="10">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="25" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.6"/>
+            <DropShadowEffect BlurRadius="25" ShadowDepth="4" Direction="270" Color="#991B1B" Opacity="0.5"/>
         </Border.Effect>
         <Grid Margin="18">
             <Grid.RowDefinitions>
@@ -34,13 +34,13 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Width="30" Height="30" CornerRadius="15" Background="#26EF4444" Margin="0,0,10,0">
-                    <TextBlock Text="👁" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#EF4444"/>
+                <Border Width="30" Height="30" CornerRadius="15" Background="#26DC2626" Margin="0,0,10,0">
+                    <TextBlock Text="👁" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#DC2626"/>
                 </Border>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock x:Name="TxtTitle" Text="Mola Vakti Geldi!" FontWeight="Bold" FontSize="14" Foreground="#F3F4F6"/>
-                    <TextBlock x:Name="TxtSubtitle" Text="Maksimum oturma sınırına ulaşıldı" FontSize="11" Foreground="#9CA3AF"/>
+                    <TextBlock x:Name="TxtSubtitle" Text="Göz sağlığınız için dinlenme zamanı" FontSize="11" Foreground="#9CA3AF"/>
                 </StackPanel>
 
                 <Button Grid.Column="2" Content="✕" Width="24" Height="24" Click="BtnClose_Click"
@@ -51,7 +51,7 @@
             <!-- Message Body -->
             <TextBlock Grid.Row="1" x:Name="TxtMessage" TextWrapping="Wrap" Margin="0,12,0,12"
                        FontSize="12" LineHeight="18" Foreground="#D1D5DB"
-                       Text="1 saattir aralıksız ekrana bakıyorsunuz. Göz kuruluğunu önlemek ve duruşunuzu düzeltmek için kalkıp dinlenmeniz önerilir."/>
+                       Text="Çalışma süreniz doldu. Göz kuruluğunu önlemek ve duruşunuzu düzeltmek için kalkıp dinlenmeniz önerilir."/>
 
             <!-- Action Buttons -->
             <Grid Grid.Row="2">
@@ -62,8 +62,8 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Start Break -->
-                <Button Grid.Column="0" Content="☕ Mola Ver (5 dk)" Click="BtnBreak_Click"
-                        Background="#10B981" Foreground="#FFFFFF" FontWeight="SemiBold"
+                <Button Grid.Column="0" Content="☕ Mola Ver" Click="BtnBreak_Click"
+                        Background="#DC2626" Foreground="#FFFFFF" FontWeight="Bold"
                         FontSize="11" Padding="10,7" BorderThickness="0" Cursor="Hand" Margin="0,0,6,0">
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -74,8 +74,8 @@
 
                 <!-- +5 Mins -->
                 <Button Grid.Column="1" Content="+5 Dk" Click="BtnExt5_Click"
-                        Background="#262A36" Foreground="#E5E7EB" FontWeight="Medium"
-                        FontSize="11" Padding="10,7" BorderThickness="1" BorderBrush="#3B4254" 
+                        Background="#151722" Foreground="#E5E7EB" FontWeight="Medium"
+                        FontSize="11" Padding="10,7" BorderThickness="1" BorderBrush="#35141A" 
                         Cursor="Hand" Margin="0,0,6,0" ToolTip="Meşgulüm, 5 dakika daha uzat">
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -86,8 +86,8 @@
 
                 <!-- +10 Mins -->
                 <Button Grid.Column="2" Content="+10 Dk" Click="BtnExt10_Click"
-                        Background="#262A36" Foreground="#E5E7EB" FontWeight="Medium"
-                        FontSize="11" Padding="10,7" BorderThickness="1" BorderBrush="#3B4254" 
+                        Background="#151722" Foreground="#E5E7EB" FontWeight="Medium"
+                        FontSize="11" Padding="10,7" BorderThickness="1" BorderBrush="#35141A" 
                         Cursor="Hand" ToolTip="Aşırı meşgulüm, 10 dakika daha uzat">
                     <Button.Resources>
                         <Style TargetType="Border">

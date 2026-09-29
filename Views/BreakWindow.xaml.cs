@@ -31,7 +31,28 @@ public partial class BreakWindow : Window
         Closed += BreakWindow_Closed;
         MouseDown += BreakWindow_MouseDown;
 
+        SetupProfileView();
         UpdateDisplay();
+    }
+
+    private void SetupProfileView()
+    {
+        if (_timer.State.Profile == TimerProfile.Rule202020)
+        {
+            TxtHeaderTitle.Text = "👁 20-20-20 Göz Molası";
+            TxtHeaderSubtitle.Text = "20 saniye boyunca en az 6 metre uzağa bakın.";
+            TxtExerciseTitle.Text = "🎯 Uzağa Odaklanın";
+            TxtExerciseDesc.Text = "Gözlerinizi ekrandan tamamen ayırın ve pencereden veya odanın en uzak köşesine bakın. Mercek kasları gevşiyor.";
+            BtnAddBreakTime.Content = "+10 Sn Ekle";
+            TxtBreakLabel.Text = "Kalan Dinlenme";
+        }
+        else
+        {
+            TxtHeaderTitle.Text = "🌿 Beden & Göz Dinlendirme";
+            TxtHeaderSubtitle.Text = "Ekrandan uzaklaşın, gözlerinizi ve kaslarınızı rahatlatın.";
+            BtnAddBreakTime.Content = "+2 Dk Ekle";
+            TxtBreakLabel.Text = "Kalan Mola";
+        }
     }
 
     private void BreakWindow_MouseDown(object sender, MouseButtonEventArgs e)
@@ -52,8 +73,9 @@ public partial class BreakWindow : Window
 
         UpdateDisplay();
 
-        // Switch tips every 20 seconds
-        if (_timer.State.ElapsedBreakSeconds > 0 && _timer.State.ElapsedBreakSeconds % 20 == 0)
+        if (_timer.State.Profile == TimerProfile.HourlySitting &&
+            _timer.State.ElapsedBreakSeconds > 0 &&
+            _timer.State.ElapsedBreakSeconds % 20 == 0)
         {
             _tipIndex = (_tipIndex + 1) % _tips.Length;
             TxtExerciseTitle.Text = _tips[_tipIndex].title;
@@ -91,7 +113,14 @@ public partial class BreakWindow : Window
 
     private void BtnAdd2Min_Click(object sender, RoutedEventArgs e)
     {
-        _timer.State.TargetBreakSeconds += 2 * 60;
+        if (_timer.State.Profile == TimerProfile.Rule202020)
+        {
+            _timer.State.TargetBreakSeconds += 10;
+        }
+        else
+        {
+            _timer.State.TargetBreakSeconds += 2 * 60;
+        }
         UpdateDisplay();
     }
 

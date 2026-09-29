@@ -2,20 +2,20 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="EyeCare Ayarlar"
-        Width="440" Height="520"
+        Width="460" Height="580"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
         ResizeMode="NoResize">
 
-    <Border Background="#14171F" 
-            BorderBrush="#2B3142" 
+    <Border Background="#090A0E" 
+            BorderBrush="#3D131A" 
             BorderThickness="1" 
             CornerRadius="16" 
             Margin="10">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="25" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.6"/>
+            <DropShadowEffect BlurRadius="28" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.8"/>
         </Border.Effect>
 
         <Grid Margin="22">
@@ -33,7 +33,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Text="⚙ Ayarlar" FontWeight="Bold" FontSize="16" Foreground="#F3F4F6"/>
-                    <TextBlock Text="Kişiselleştirme ve çalışma tercihleri" FontSize="11" Foreground="#9CA3AF"/>
+                    <TextBlock Text="Kişiselleştirme, 20-20-20 ve görünüm tercihleri" FontSize="11" Foreground="#9CA3AF"/>
                 </StackPanel>
                 <Button Grid.Column="1" Content="✕" Width="24" Height="24" Click="BtnClose_Click"
                         Background="Transparent" BorderThickness="0" Foreground="#9CA3AF"
@@ -42,40 +42,88 @@
 
             <!-- Settings Content List -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="0,0,6,0">
-                    
-                    <!-- Work Duration -->
-                    <Border Background="#1C202C" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                <StackPanel Margin="0,0,8,0">
+
+                    <!-- Pin to Screen (Always On Top) -->
+                    <Border Background="#12131A" BorderBrush="#2D1117" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="Maksimum Oturma Limiti" FontWeight="SemiBold" FontSize="12" Foreground="#E5E7EB"/>
+                                <TextBlock Text="📌 Ekrana Sabitle (Her Zaman En Üstte)" FontWeight="SemiBold" FontSize="12" Foreground="#F3F4F6"/>
+                                <TextBlock Text="Tüm pencerelerin ve oyunların üzerinde kalır" FontSize="10" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" x:Name="ChkAlwaysOnTop" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- AMOLED Black Mode -->
+                    <Border Background="#12131A" BorderBrush="#2D1117" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="🖤 AMOLED Siyah Modu" FontWeight="SemiBold" FontSize="12" Foreground="#F3F4F6"/>
+                                <TextBlock Text="Tam siyah (#000000) ve derin koyu kırmızı tema" FontSize="10" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" x:Name="ChkAmoled" IsChecked="True" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Active Default Mode -->
+                    <Border Background="#12131A" BorderBrush="#2D1117" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Varsayılan Takip Modu" FontWeight="SemiBold" FontSize="12" Foreground="#F3F4F6"/>
+                                <TextBlock Text="Başlangıçta çalışacak kural" FontSize="10" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" x:Name="CmbDefaultMode" Width="150">
+                                <ComboBoxItem Content="1 Saatlik Oturma Limiti" Tag="HourlySitting" IsSelected="True"/>
+                                <ComboBoxItem Content="20-20-20 Göz Kuralı" Tag="Rule202020"/>
+                            </ComboBox>
+                        </Grid>
+                    </Border>
+
+                    <!-- Work Duration (Hourly Mode) -->
+                    <Border Background="#12131A" BorderBrush="#2D1117" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Maksimum Oturma Limiti (Seans)" FontWeight="SemiBold" FontSize="12" Foreground="#F3F4F6"/>
                                 <TextBlock Text="Kesintisiz oturulabilecek hedef süre" FontSize="10" Foreground="#9CA3AF"/>
                             </StackPanel>
-                            <ComboBox Grid.Column="1" x:Name="CmbWorkDuration" Width="90" Background="#262C3D" Foreground="#E5E7EB" BorderBrush="#3B4254">
+                            <ComboBox Grid.Column="1" x:Name="CmbWorkDuration" Width="110">
                                 <ComboBoxItem Content="30 dk" Tag="30"/>
                                 <ComboBoxItem Content="45 dk" Tag="45"/>
-                                <ComboBoxItem Content="60 dk (Önerilen)" Tag="60" IsSelected="True"/>
+                                <ComboBoxItem Content="60 dk (1 Saat)" Tag="60" IsSelected="True"/>
                                 <ComboBoxItem Content="90 dk" Tag="90"/>
                             </ComboBox>
                         </Grid>
                     </Border>
 
                     <!-- Break Duration -->
-                    <Border Background="#1C202C" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                    <Border Background="#12131A" BorderBrush="#2D1117" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="Mola Süresi" FontWeight="SemiBold" FontSize="12" Foreground="#E5E7EB"/>
+                                <TextBlock Text="Mola Süresi (Seans İçin)" FontWeight="SemiBold" FontSize="12" Foreground="#F3F4F6"/>
                                 <TextBlock Text="Her oturum sonrası dinlenme vakti" FontSize="10" Foreground="#9CA3AF"/>
                             </StackPanel>
-                            <ComboBox Grid.Column="1" x:Name="CmbBreakDuration" Width="90" Background="#262C3D" Foreground="#E5E7EB" BorderBrush="#3B4254">
+                            <ComboBox Grid.Column="1" x:Name="CmbBreakDuration" Width="110">
                                 <ComboBoxItem Content="3 dk" Tag="3"/>
                                 <ComboBoxItem Content="5 dk (Önerilen)" Tag="5" IsSelected="True"/>
                                 <ComboBoxItem Content="10 dk" Tag="10"/>
@@ -83,8 +131,26 @@
                         </Grid>
                     </Border>
 
+                    <!-- 20-20-20 Rest Duration -->
+                    <Border Background="#12131A" BorderBrush="#2D1117" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="20-20-20 Dinlenme Süresi" FontWeight="SemiBold" FontSize="12" Foreground="#F3F4F6"/>
+                                <TextBlock Text="Uzağa odaklanma süresi" FontSize="10" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" x:Name="CmbEyeRestDuration" Width="110">
+                                <ComboBoxItem Content="20 saniye" Tag="20" IsSelected="True"/>
+                                <ComboBoxItem Content="30 saniye" Tag="30"/>
+                            </ComboBox>
+                        </Grid>
+                    </Border>
+
                     <!-- Idle Detection -->
-                    <Border Background="#1C202C" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                    <Border Background="#12131A" BorderBrush="#2D1117" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
                         <StackPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -92,7 +158,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel>
-                                    <TextBlock Text="Akıllı Boşta Kalma (Idle) Algılama" FontWeight="SemiBold" FontSize="12" Foreground="#E5E7EB"/>
+                                    <TextBlock Text="Akıllı Boşta Kalma (Idle) Algılama" FontWeight="SemiBold" FontSize="12" Foreground="#F3F4F6"/>
                                     <TextBlock Text="Masadan kalktığınızda süreyi otomatik durdurur" FontSize="10" Foreground="#9CA3AF"/>
                                 </StackPanel>
                                 <CheckBox Grid.Column="1" x:Name="ChkIdleDetect" IsChecked="True" VerticalAlignment="Center"/>
@@ -103,7 +169,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Boşta Sayılma Eşiği" FontSize="10" Foreground="#9CA3AF" VerticalAlignment="Center"/>
-                                <ComboBox Grid.Column="1" x:Name="CmbIdleThreshold" Width="90" Background="#262C3D" Foreground="#E5E7EB" BorderBrush="#3B4254">
+                                <ComboBox Grid.Column="1" x:Name="CmbIdleThreshold" Width="110">
                                     <ComboBoxItem Content="2 dk" Tag="2"/>
                                     <ComboBoxItem Content="3 dk" Tag="3" IsSelected="True"/>
                                     <ComboBoxItem Content="5 dk" Tag="5"/>
@@ -113,14 +179,14 @@
                     </Border>
 
                     <!-- Sound Notification -->
-                    <Border Background="#1C202C" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                    <Border Background="#12131A" BorderBrush="#2D1117" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="Sesli Bildirim" FontWeight="SemiBold" FontSize="12" Foreground="#E5E7EB"/>
+                                <TextBlock Text="Sesli Bildirim" FontWeight="SemiBold" FontSize="12" Foreground="#F3F4F6"/>
                                 <TextBlock Text="Süre dolduğunda hafif uyarı tonu çalar" FontSize="10" Foreground="#9CA3AF"/>
                             </StackPanel>
                             <CheckBox Grid.Column="1" x:Name="ChkSound" IsChecked="True" VerticalAlignment="Center"/>
@@ -128,14 +194,14 @@
                     </Border>
 
                     <!-- Windows Startup -->
-                    <Border Background="#1C202C" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                    <Border Background="#12131A" BorderBrush="#2D1117" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="Windows ile Başlat" FontWeight="SemiBold" FontSize="12" Foreground="#E5E7EB"/>
+                                <TextBlock Text="Windows ile Başlat" FontWeight="SemiBold" FontSize="12" Foreground="#F3F4F6"/>
                                 <TextBlock Text="Bilgisayar açıldığında arka planda başlar" FontSize="10" Foreground="#9CA3AF"/>
                             </StackPanel>
                             <CheckBox Grid.Column="1" x:Name="ChkStartup" IsChecked="False" VerticalAlignment="Center"/>
@@ -143,14 +209,14 @@
                     </Border>
 
                     <!-- Minimize on close -->
-                    <Border Background="#1C202C" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                    <Border Background="#12131A" BorderBrush="#2D1117" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="Kapatınca Tepsiye Küçült" FontWeight="SemiBold" FontSize="12" Foreground="#E5E7EB"/>
+                                <TextBlock Text="Kapatınca Tepsiye Küçült" FontWeight="SemiBold" FontSize="12" Foreground="#F3F4F6"/>
                                 <TextBlock Text="Çarpıya basınca arka planda izlemeye devam eder" FontSize="10" Foreground="#9CA3AF"/>
                             </StackPanel>
                             <CheckBox Grid.Column="1" x:Name="ChkMinToTray" IsChecked="True" VerticalAlignment="Center"/>
@@ -162,8 +228,8 @@
 
             <!-- Save Button -->
             <Button Grid.Row="2" Content="Ayarları Kaydet" Click="BtnSave_Click"
-                    Background="#10B981" Foreground="#FFFFFF" FontWeight="SemiBold"
-                    FontSize="12" Padding="0,10" BorderThickness="0" Cursor="Hand" Margin="0,14,0,0">
+                    Background="#DC2626" Foreground="#FFFFFF" FontWeight="Bold"
+                    FontSize="12" Padding="0,11" BorderThickness="0" Cursor="Hand" Margin="0,14,0,0">
                 <Button.Resources>
                     <Style TargetType="Border">
                         <Setter Property="CornerRadius" Value="10"/>

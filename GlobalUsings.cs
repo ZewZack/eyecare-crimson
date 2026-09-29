@@ -2,6 +2,7 @@ global using Point = System.Windows.Point;
 global using Size = System.Windows.Size;
 global using Color = System.Windows.Media.Color;
 global using ColorConverter = System.Windows.Media.ColorConverter;
+global using Brushes = System.Windows.Media.Brushes;
 global using ComboBox = System.Windows.Controls.ComboBox;
 global using ComboBoxItem = System.Windows.Controls.ComboBoxItem;
 global using CheckBox = System.Windows.Controls.CheckBox;

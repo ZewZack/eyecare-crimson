@@ -22,9 +22,9 @@ public partial class MainWindow : Window
     private readonly string[] _healthTips = new[]
     {
         "20-20-20 Kuralı: 20 dakikada bir, 20 saniye boyunca 6 metre uzağa bakın.",
-        "Göz Kırpma: Ekrana odaklanırken gözlerinizi düzenli olarak bilinçli kırpın.",
-        "Su Tüketimi: Günde en az 2 litre su içmek göz kuruluğunu önler.",
-        "Ekran Mesafesi: Monitörünüz gözünüzden yaklaşık bir kol mesafesinde olmalı.",
+        "Göz Kırpma: Ekrana odaklanırken göz kırpma sıklığı %60 azalır, bilinçli kırpın.",
+        "Su Tüketimi: Günlük yeterli su içmek göz kuruluğunu ve yorgunluğu önler.",
+        "Ekran Mesafesi: Monitörünüz gözünüzden yaklaşık bir kol mesafesinde (50-70 cm) olmalı.",
         "Ekran Yüksekliği: Monitörün üst kenarı göz hizanızda veya biraz altında olmalı.",
         "Omuz ve Boyun: Saat başı omuzlarınızı 5 kez geriye doğru dairesel esnetin."
     };
@@ -55,12 +55,15 @@ public partial class MainWindow : Window
         Closing += MainWindow_Closing;
         Loaded += MainWindow_Loaded;
 
+        ApplySettingsPreferences();
         _timer.Start();
         UpdateUI();
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        ApplySettingsPreferences();
+
         // Check command line arguments for --minimized
         string[] args = Environment.GetCommandLineArgs();
         foreach (string arg in args)
@@ -71,6 +74,67 @@ public partial class MainWindow : Window
                 Win32Helper.TrimWorkingSet();
                 break;
             }
+        }
+    }
+
+    private void ApplySettingsPreferences()
+    {
+        // Topmost (Pin)
+        Topmost = _settings.AlwaysOnTop;
+        UpdatePinVisual();
+
+        // AMOLED Mode
+        if (_settings.AmoledMode)
+        {
+            RootBorder.Background = new SolidColorBrush(Color.FromRgb(0, 0, 0));
+            RootBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3F1017"));
+        }
+        else
+        {
+            RootBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#08090D"));
+            RootBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2C1217"));
+        }
+
+        UpdateModeButtonsVisual();
+    }
+
+    private void UpdatePinVisual()
+    {
+        if (Topmost)
+        {
+            BtnPin.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DC2626"));
+            TxtPinIcon.Foreground = Brushes.White;
+            BtnPin.ToolTip = "Ekrana Sabitlendi (Kaldırmak için tıkla)";
+        }
+        else
+        {
+            BtnPin.Background = Brushes.Transparent;
+            TxtPinIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CA3AF"));
+            BtnPin.ToolTip = "Ekrana Sabitle (Her Zaman En Üstte)";
+        }
+    }
+
+    private void UpdateModeButtonsVisual()
+    {
+        if (_timer.State.Profile == TimerProfile.Rule202020)
+        {
+            BtnMode202020.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DC2626"));
+            BtnMode202020.Foreground = Brushes.White;
+            BtnMode202020.FontWeight = FontWeights.SemiBold;
+
+            BtnModeHourly.Background = Brushes.Transparent;
+            BtnModeHourly.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CA3AF"));
+            BtnModeHourly.FontWeight = FontWeights.Normal;
+        }
+        else
+        {
+            BtnModeHourly.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DC2626"));
+            BtnModeHourly.Foreground = Brushes.White;
+            BtnModeHourly.FontWeight = FontWeights.SemiBold;
+
+            BtnMode202020.Background = Brushes.Transparent;
+            BtnMode202020.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CA3AF"));
+            BtnMode202020.FontWeight = FontWeights.Normal;
         }
     }
 
@@ -93,7 +157,6 @@ public partial class MainWindow : Window
     {
         UpdateUI();
 
-        // Rotate tip every 45 seconds
         _tipCounterSeconds++;
         if (_tipCounterSeconds >= 45)
         {
@@ -129,16 +192,16 @@ public partial class MainWindow : Window
             BadgeExtension.Visibility = Visibility.Collapsed;
         }
 
-        // Mode specific display
+        // Idle Away Display
         if (state.IsIdleAway)
         {
             SetStatusTheme(
-                pillBg: "#1F2937",
+                pillBg: "#1F222E",
                 pillColor: "#9CA3AF",
                 pillText: "💤 PC Başında Değilsiniz (Boşta)",
                 timerText: FormatSeconds(state.RemainingWorkingSeconds),
                 timerLabel: "Kalan Süre (Durduruldu)",
-                arcColor: "#9CA3AF",
+                arcColor: "#6B7280",
                 arcRatio: state.WorkProgressRatio
             );
             _trayManager.UpdateTooltip($"EyeCare - Boşta ({state.IdleSeconds / 60} dk)");
@@ -146,16 +209,17 @@ public partial class MainWindow : Window
             return;
         }
 
+        // Paused Display
         if (state.Mode == TimerMode.Paused)
         {
             BtnPause.Content = "▶ Devam Et";
             SetStatusTheme(
-                pillBg: "#1F2937",
+                pillBg: "#1F222E",
                 pillColor: "#9CA3AF",
                 pillText: "⏸ Duraklatıldı",
                 timerText: FormatSeconds(state.RemainingWorkingSeconds),
                 timerLabel: "Kalan Süre (Duraklatıldı)",
-                arcColor: "#6B7280",
+                arcColor: "#4B5563",
                 arcRatio: state.WorkProgressRatio
             );
             _trayManager.UpdateTooltip("EyeCare - Duraklatıldı");
@@ -165,16 +229,20 @@ public partial class MainWindow : Window
 
         BtnPause.Content = "⏸ Duraklat";
 
+        // Break Display
         if (state.Mode == TimerMode.Break)
         {
             int rem = state.RemainingBreakSeconds;
+            string breakTitle = state.Profile == TimerProfile.Rule202020 ? "👁 20-20-20 Göz Molası" : "☕ Beden & Göz Molası";
+            string breakSubtitle = state.Profile == TimerProfile.Rule202020 ? "6 Metre Uzağa Odaklanın" : "Mola Bitimine Kalan";
+
             SetStatusTheme(
-                pillBg: "#251F38",
-                pillColor: "#A5B4FC",
-                pillText: "☕ Dinlenme & Göz Molası",
+                pillBg: "#3A0E15",
+                pillColor: "#F43F5E",
+                pillText: breakTitle,
                 timerText: FormatSeconds(rem),
-                timerLabel: "Mola Bitimine Kalan",
-                arcColor: "#6366F1",
+                timerLabel: breakSubtitle,
+                arcColor: "#E11D48",
                 arcRatio: state.BreakProgressRatio
             );
             _trayManager.UpdateTooltip($"EyeCare - Mola ({FormatSeconds(rem)})");
@@ -182,12 +250,13 @@ public partial class MainWindow : Window
             return;
         }
 
+        // Overtime Display
         if (state.Mode == TimerMode.Overtime)
         {
             int over = state.OvertimeElapsedSeconds;
             bool isHighOvertime = state.ElapsedWorkingSeconds >= 75 * 60;
-            string colorHex = isHighOvertime ? "#EF4444" : "#F59E0B";
-            string bgHex = isHighOvertime ? "#35191C" : "#322514";
+            string colorHex = isHighOvertime ? "#EF4444" : "#F97316";
+            string bgHex = isHighOvertime ? "#450A11" : "#38120B";
 
             SetStatusTheme(
                 pillBg: bgHex,
@@ -203,30 +272,33 @@ public partial class MainWindow : Window
             return;
         }
 
-        // TimerMode.Working
+        // Normal Working Display (Profile-Aware)
         int remaining = state.RemainingWorkingSeconds;
         int targetMins = (state.TargetWorkingSeconds + state.ExtensionSeconds) / 60;
         int currentMins = state.ElapsedWorkingSeconds / 60;
 
-        string workPillBg = "#192A24";
-        string workPillColor = "#10B981";
-        string workArcColor = "#10B981";
+        string pillBg = "#260C10";
+        string pillColor = "#DC2626";
+        string arcColor = "#DC2626";
 
-        if (remaining <= 10 * 60)
+        string modeTitle = (state.Profile == TimerProfile.Rule202020)
+            ? $"20-20-20 Modu ({currentMins} / 20 dk)"
+            : $"Odaklanma Seansı ({currentMins} / {targetMins} dk)";
+
+        if (remaining <= (state.Profile == TimerProfile.Rule202020 ? 60 : 10 * 60))
         {
-            // Amber warning zone (last 10 minutes)
-            workPillBg = "#2E2416";
-            workPillColor = "#F59E0B";
-            workArcColor = "#F59E0B";
+            pillBg = "#38150F";
+            pillColor = "#F97316";
+            arcColor = "#F97316";
         }
 
         SetStatusTheme(
-            pillBg: workPillBg,
-            pillColor: workPillColor,
-            pillText: $"Odaklanma ({currentMins} / {targetMins} dk)",
+            pillBg: pillBg,
+            pillColor: pillColor,
+            pillText: modeTitle,
             timerText: FormatSeconds(remaining),
-            timerLabel: "Kalan Süre",
-            arcColor: workArcColor,
+            timerLabel: "Kalan Çalışma Süresi",
+            arcColor: arcColor,
             arcRatio: state.WorkProgressRatio
         );
 
@@ -266,17 +338,15 @@ public partial class MainWindow : Window
                 SoundService.PlayAlertNotification();
             }
 
-            // Close existing notification if any
             if (_activeNotification != null && _activeNotification.IsLoaded)
             {
                 _activeNotification.Close();
             }
 
-            // Show non-intrusive floating toast (doesn't steal focus from games/workflow)
             _activeNotification = new NotificationWindow(_timer, message, isCritical);
             _activeNotification.Show();
 
-            _trayManager.ShowBalloon("EyeCare - Dinlenme Zamanı", message);
+            _trayManager.ShowBalloon("EyeCare - Dinlenme Vakti", message);
         });
     }
 
@@ -289,9 +359,35 @@ public partial class MainWindow : Window
                 SoundService.PlayBreakComplete();
             }
 
-            _trayManager.ShowBalloon("Tebrikler!", "5 dakikalık mola tamamlandı. Gözleriniz dinlendi, yeni seansınız başladı!");
+            string msg = _timer.State.Profile == TimerProfile.Rule202020
+                ? "20 saniyelik göz molası tamamlandı! Göz merceğiniz rahatladı."
+                : "Mola tamamlandı! Gözleriniz ve bedeniniz dinlendi, yeni seans başladı.";
+
+            _trayManager.ShowBalloon("Tebrikler!", msg);
             UpdateUI();
         });
+    }
+
+    private void BtnPin_Click(object sender, RoutedEventArgs e)
+    {
+        Topmost = !Topmost;
+        _settings.AlwaysOnTop = Topmost;
+        _settings.Save();
+        UpdatePinVisual();
+    }
+
+    private void BtnModeHourly_Click(object sender, RoutedEventArgs e)
+    {
+        _timer.SwitchProfile(TimerProfile.HourlySitting);
+        UpdateModeButtonsVisual();
+        UpdateUI();
+    }
+
+    private void BtnMode202020_Click(object sender, RoutedEventArgs e)
+    {
+        _timer.SwitchProfile(TimerProfile.Rule202020);
+        UpdateModeButtonsVisual();
+        UpdateUI();
     }
 
     private void BtnExt5_Click(object sender, RoutedEventArgs e)
@@ -347,8 +443,8 @@ public partial class MainWindow : Window
     {
         var settingsWindow = new SettingsWindow(_settings, onSettingsUpdated: () =>
         {
-            _timer.State.TargetWorkingSeconds = _settings.WorkDurationMinutes * 60;
-            _timer.State.TargetBreakSeconds = _settings.BreakDurationMinutes * 60;
+            ApplySettingsPreferences();
+            _timer.ApplyProfileDurations();
             UpdateUI();
         });
         settingsWindow.Owner = this;

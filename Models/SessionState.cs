@@ -10,6 +10,7 @@ public enum TimerMode
 
 public class SessionState
 {
+    public TimerProfile Profile { get; set; } = TimerProfile.HourlySitting;
     public TimerMode Mode { get; set; } = TimerMode.Working;
     
     // In seconds

@@ -4,6 +4,12 @@ using System.Text.Json;
 
 namespace eyecarebyzewzack.Models;
 
+public enum TimerProfile
+{
+    HourlySitting,  // Oturma & Duruş Seansı (30, 45, 60, 90 dk)
+    Rule202020      // 20-20-20 Göz Sağlığı Kuralı (20 dk çalış, 20 sn uzağa bak)
+}
+
 public enum NotificationStyle
 {
     FloatingToast, // Gamer & workflow friendly: Non-stealing corner toast
@@ -12,8 +18,16 @@ public enum NotificationStyle
 
 public class AppSettings
 {
+    public TimerProfile ActiveProfile { get; set; } = TimerProfile.HourlySitting;
     public int WorkDurationMinutes { get; set; } = 60;
     public int BreakDurationMinutes { get; set; } = 5;
+    
+    // 20-20-20 specific settings
+    public int EyeRestDurationSeconds { get; set; } = 20;
+
+    public bool AmoledMode { get; set; } = true;
+    public bool AlwaysOnTop { get; set; } = false;
+
     public bool IdleDetectionEnabled { get; set; } = true;
     public int IdleThresholdMinutes { get; set; } = 3;
     public bool SoundEnabled { get; set; } = true;
@@ -43,7 +57,6 @@ public class AppSettings
                 var settings = JsonSerializer.Deserialize<AppSettings>(json);
                 if (settings != null)
                 {
-                    // Check if date has changed for daily stats
                     if (settings.LastSavedDate != DateTime.Today.ToString("yyyy-MM-dd"))
                     {
                         settings.TodaySittingMinutes = 0;
@@ -56,7 +69,7 @@ public class AppSettings
         }
         catch
         {
-            // Ignore read errors, fallback to defaults
+            // Fallback to defaults
         }
 
         return new AppSettings();

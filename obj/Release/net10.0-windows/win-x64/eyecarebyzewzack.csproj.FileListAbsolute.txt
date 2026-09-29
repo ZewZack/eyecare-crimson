@@ -25,3 +25,4 @@ C:\Users\zewzew\zewzack\antigravity\eyecarebyzewzack\obj\Release\net10.0-windows
 C:\Users\zewzew\zewzack\antigravity\eyecarebyzewzack\obj\Release\net10.0-windows\win-x64\eyecarebyzewzack.pdb
 C:\Users\zewzew\zewzack\antigravity\eyecarebyzewzack\obj\Release\net10.0-windows\win-x64\eyecarebyzewzack.genruntimeconfig.cache
 C:\Users\zewzew\zewzack\antigravity\eyecarebyzewzack\obj\Release\net10.0-windows\win-x64\ref\eyecarebyzewzack.dll
+C:\Users\zewzew\zewzack\antigravity\eyecarebyzewzack\obj\Release\net10.0-windows\win-x64\App.baml
