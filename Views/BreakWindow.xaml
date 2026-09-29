@@ -1,0 +1,97 @@
+<Window x:Class="eyecarebyzewzack.Views.BreakWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="EyeCare - Göz Dinlendirme Modu"
+        Width="500" Height="420"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ResizeMode="NoResize">
+
+    <Border Background="#12141A" 
+            BorderBrush="#2E3444" 
+            BorderThickness="1" 
+            CornerRadius="20" 
+            Margin="10">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="30" ShadowDepth="6" Direction="270" Color="#000000" Opacity="0.7"/>
+        </Border.Effect>
+
+        <Grid Margin="28">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+                <TextBlock Text="🌿 Göz &amp; Beden Dinlendirme" 
+                           FontWeight="Bold" FontSize="18" Foreground="#F3F4F6" 
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Ekrandan uzaklaşın, gözlerinizi ve kaslarınızı rahatlatın." 
+                           FontSize="12" Foreground="#9CA3AF" Margin="0,4,0,0" 
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Center Countdown & Exercise -->
+            <Grid Grid.Row="1" Margin="0,20,0,20">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <!-- Timer Circle Representation -->
+                    <Border Width="130" Height="130" CornerRadius="65" 
+                            Background="#1A1E29" BorderBrush="#6366F1" BorderThickness="3">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock x:Name="TxtBreakTime" Text="05:00" 
+                                       FontWeight="Bold" FontSize="32" 
+                                       Foreground="#818CF8" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Kalan Mola" FontSize="11" Foreground="#9CA3AF" 
+                                       HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Eye Health Guide Card -->
+                    <Border Background="#1A1E29" CornerRadius="12" Padding="14,10" Margin="0,18,0,0" Width="380">
+                        <StackPanel>
+                            <TextBlock x:Name="TxtExerciseTitle" Text="💡 20-20-20 Kuralı" 
+                                       FontWeight="SemiBold" FontSize="12" Foreground="#A5B4FC"/>
+                            <TextBlock x:Name="TxtExerciseDesc" 
+                                       Text="Pencereden dışarı veya en az 6 metre uzağa 20 saniye bakın. Göz kaslarınız gevşeyecektir." 
+                                       FontSize="11" LineHeight="16" Foreground="#D1D5DB" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- Actions -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="Gözlerimi Dinlendirdim (Bitir)" Click="BtnFinishBreak_Click"
+                        Background="#6366F1" Foreground="#FFFFFF" FontWeight="SemiBold"
+                        FontSize="12" Padding="14,9" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="10"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+                <Button Grid.Column="1" Content="+2 Dk Ekle" Click="BtnAdd2Min_Click"
+                        Background="#262A36" Foreground="#E5E7EB" FontWeight="Medium"
+                        FontSize="12" Padding="14,9" BorderThickness="1" BorderBrush="#3B4254" 
+                        Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="10"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

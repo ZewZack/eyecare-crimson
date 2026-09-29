@@ -1,0 +1,227 @@
+<Window x:Class="eyecarebyzewzack.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:helpers="clr-namespace:eyecarebyzewzack.Helpers"
+        Title="EyeCare ZewZack - Göz ve Duruş Takipçisi"
+        Width="400" Height="590"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanMinimize">
+
+    <Border Background="#101217" 
+            BorderBrush="#252A37" 
+            BorderThickness="1" 
+            CornerRadius="18" 
+            Margin="10">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="28" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.65"/>
+        </Border.Effect>
+
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Titlebar / Header -->
+                <RowDefinition Height="Auto"/> <!-- Status Pill -->
+                <RowDefinition Height="*"/>    <!-- Center Circular Progress -->
+                <RowDefinition Height="Auto"/> <!-- Busy / Extension Quick Buttons -->
+                <RowDefinition Height="Auto"/> <!-- Play/Pause/Reset Controls -->
+                <RowDefinition Height="Auto"/> <!-- Daily Stats -->
+                <RowDefinition Height="Auto"/> <!-- Health Tip Footer -->
+            </Grid.RowDefinitions>
+
+            <!-- 1. Titlebar -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="26" Height="26" CornerRadius="13" Background="#1D2230" Margin="0,0,8,0">
+                        <TextBlock Text="👁" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="EyeCare" FontWeight="Bold" FontSize="15" Foreground="#F3F4F6" VerticalAlignment="Center"/>
+                    <TextBlock Text="Lite" FontWeight="Normal" FontSize="11" Foreground="#6B7280" Margin="4,2,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Settings Button -->
+                <Button Grid.Column="2" Content="⚙" Width="26" Height="26" Click="BtnSettings_Click"
+                        Background="Transparent" BorderThickness="0" Foreground="#9CA3AF"
+                        Cursor="Hand" FontSize="14" ToolTip="Ayarlar" Margin="0,0,4,0"/>
+
+                <!-- Minimize Button -->
+                <Button Grid.Column="3" Content="—" Width="26" Height="26" Click="BtnMinimize_Click"
+                        Background="Transparent" BorderThickness="0" Foreground="#9CA3AF"
+                        Cursor="Hand" FontSize="12" ToolTip="Tepsiye Küçült" Margin="0,0,4,0"/>
+
+                <!-- Close Button -->
+                <Button Grid.Column="4" Content="✕" Width="26" Height="26" Click="BtnClose_Click"
+                        Background="Transparent" BorderThickness="0" Foreground="#9CA3AF"
+                        Cursor="Hand" FontSize="13" ToolTip="Kapat (Arka Planda Çalışır)"/>
+            </Grid>
+
+            <!-- 2. Status Pill -->
+            <Border Grid.Row="1" x:Name="PillStatus" 
+                    Background="#192A24" CornerRadius="12" 
+                    Padding="12,5" HorizontalAlignment="Center" Margin="0,16,0,10">
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse x:Name="DotStatus" Width="7" Height="7" Fill="#10B981" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="TxtStatus" Text="Odaklanma Modu (0 / 60 dk)" 
+                               FontSize="11" FontWeight="SemiBold" Foreground="#10B981"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 3. Center Circular Gauge -->
+            <Grid Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,14">
+                <Grid Width="200" Height="200">
+                    <!-- Background Track -->
+                    <Ellipse Stroke="#1B202D" StrokeThickness="10"/>
+
+                    <!-- Progress Arc -->
+                    <helpers:Arc x:Name="GaugeArc" 
+                                 StartAngle="0" EndAngle="0"
+                                 Stroke="#10B981" StrokeThickness="10"
+                                 StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+
+                    <!-- Center Text -->
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock x:Name="TxtTimer" Text="60:00" 
+                                   FontWeight="Bold" FontSize="36" 
+                                   Foreground="#F9FAFB" HorizontalAlignment="Center"/>
+                        
+                        <TextBlock x:Name="TxtTimerLabel" Text="Kalan Süre" 
+                                   FontSize="11" Foreground="#9CA3AF" 
+                                   HorizontalAlignment="Center" Margin="0,2,0,0"/>
+
+                        <!-- Extension badge if extended -->
+                        <Border x:Name="BadgeExtension" Visibility="Collapsed"
+                                Background="#2A2113" CornerRadius="8" Padding="6,2" Margin="0,6,0,0">
+                            <TextBlock x:Name="TxtExtensionBadge" Text="+5 dk uzatıldı" 
+                                       FontSize="10" Foreground="#F59E0B" FontWeight="Medium"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <!-- 4. Busy / Extension Quick Buttons ("+5 dk / +10 dk Aşırı Meşguliyet") -->
+            <StackPanel Grid.Row="3" Margin="0,0,0,12">
+                <TextBlock Text="AŞIRI MEŞGULİYET / EK SÜRE" 
+                           FontSize="9" FontWeight="Bold" Foreground="#6B7280" 
+                           HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Content="+5 Dk Uzat" Click="BtnExt5_Click"
+                            Background="#1A1E29" Foreground="#E5E7EB" FontWeight="Medium"
+                            FontSize="11" Padding="0,8" BorderThickness="1" BorderBrush="#2F3647" 
+                            Cursor="Hand" Margin="0,0,4,0" ToolTip="İşi bitirmek için 5 dakika ekle">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <Button Grid.Column="1" Content="+10 Dk Uzat" Click="BtnExt10_Click"
+                            Background="#1A1E29" Foreground="#E5E7EB" FontWeight="Medium"
+                            FontSize="11" Padding="0,8" BorderThickness="1" BorderBrush="#2F3647" 
+                            Cursor="Hand" Margin="2,0,2,0" ToolTip="Aşırı meşgulseniz 10 dakika ekle">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <Button Grid.Column="2" Content="☕ Mola Ver" Click="BtnBreak_Click"
+                            Background="#10B981" Foreground="#FFFFFF" FontWeight="SemiBold"
+                            FontSize="11" Padding="0,8" BorderThickness="0" 
+                            Cursor="Hand" Margin="4,0,0,0" ToolTip="Şimdi 5 dakika mola başlat">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </Grid>
+            </StackPanel>
+
+            <!-- 5. Controls (Pause/Resume, Reset) -->
+            <Grid Grid.Row="4" Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" x:Name="BtnPause" Content="⏸ Duraklat" Click="BtnPause_Click"
+                        Background="#171A23" Foreground="#9CA3AF" FontWeight="Medium"
+                        FontSize="11" Padding="0,7" BorderThickness="1" BorderBrush="#262B3A" 
+                        Cursor="Hand" Margin="0,0,4,0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+                <Button Grid.Column="1" Content="🔄 Sıfırla" Click="BtnReset_Click"
+                        Background="#171A23" Foreground="#9CA3AF" FontWeight="Medium"
+                        FontSize="11" Padding="0,7" BorderThickness="1" BorderBrush="#262B3A" 
+                        Cursor="Hand" Margin="4,0,0,0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </Grid>
+
+            <!-- 6. Daily Statistics Cards -->
+            <Grid Grid.Row="5" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Total Sitting -->
+                <Border Grid.Column="0" Background="#141720" CornerRadius="10" Padding="10,8" Margin="0,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="BUGÜN OTURULAN" FontSize="9" FontWeight="Bold" Foreground="#6B7280"/>
+                        <TextBlock x:Name="TxtDailySitting" Text="0 sa 0 dk" FontSize="13" FontWeight="SemiBold" Foreground="#E5E7EB" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Completed Breaks -->
+                <Border Grid.Column="1" Background="#141720" CornerRadius="10" Padding="10,8" Margin="4,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="ALINAN MOLALAR" FontSize="9" FontWeight="Bold" Foreground="#6B7280"/>
+                        <TextBlock x:Name="TxtDailyBreaks" Text="0 Mola" FontSize="13" FontWeight="SemiBold" Foreground="#E5E7EB" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- 7. Health Tip Footer -->
+            <Border Grid.Row="6" Background="#13161F" CornerRadius="10" Padding="10,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="💡" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" x:Name="TxtTip" 
+                               Text="20-20-20 Kuralı: 20 dakikada bir, 20 saniye boyunca 6 metre uzağa bakın." 
+                               FontSize="10" Foreground="#9CA3AF" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Border>
+</Window>
