@@ -1,8 +1,10 @@
 # EyeCare Crimson
 
-Bilgisayar başında saatlerce oturanlar ve oyun oynayanlar için yaptığım ultra hafif, sade ve AMOLED koyu kırmızı temalı bir göz/duruş takip uygulaması. 
+Bilgisayar başında saatlerce oturanlar ve oyun oynayanlar için ultra hafif, sade ve AMOLED koyu kırmızı temalı bir göz/duruş takip uygulaması. 
 
-Electron tabanlı hantal uygulamalar gibi 400-500 MB RAM ve arka planda GPU tüketmez. Yerel .NET WPF ile yazıldığı için arkada çalışırken sıfır GPU ve neredeyse sıfır CPU harcar, oyunlarda FPS düşürmez.
+Electron tabanlı hantal uygulamalar gibi 400-500 MB RAM ve arka planda GPU tüketmez. 
+
+Yerel .NET WPF ile yazıldığı için arkada çalışırken sıfır GPU ve neredeyse sıfır CPU harcar, oyunlarda FPS düşürmez.
 
 ## Neler Var?
 
