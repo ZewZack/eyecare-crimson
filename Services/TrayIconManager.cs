@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using eyecarebyzewzack.Models;
 
@@ -8,13 +9,23 @@ namespace eyecarebyzewzack.Services;
 
 public class TrayIconManager : IDisposable
 {
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool DestroyIcon(IntPtr hIcon);
+
     private readonly NotifyIcon _notifyIcon;
     private readonly EyeCareTimer _timer;
     private readonly Action _onOpenWindow;
     private readonly Action _onOpenSettings;
     private readonly Action _onExit;
 
-    private Icon? _currentIcon;
+    // Pre-cached static icons (Zero GDI leaks)
+    private readonly Icon _iconNormal;
+    private readonly Icon _iconWarning;
+    private readonly Icon _iconOvertime;
+    private readonly Icon _iconBreak;
+    private readonly Icon _iconIdle;
+
+    private string _lastTooltip = string.Empty;
 
     public TrayIconManager(
         EyeCareTimer timer,
@@ -27,16 +38,49 @@ public class TrayIconManager : IDisposable
         _onOpenSettings = onOpenSettings;
         _onExit = onExit;
 
+        // Initialize static cached icons once
+        _iconNormal = CreateDotIcon(System.Drawing.Color.FromArgb(220, 38, 38));    // Crimson Red
+        _iconWarning = CreateDotIcon(System.Drawing.Color.FromArgb(249, 115, 22));  // Orange Flame
+        _iconOvertime = CreateDotIcon(System.Drawing.Color.FromArgb(239, 68, 68)); // Vivid Red
+        _iconBreak = CreateDotIcon(System.Drawing.Color.FromArgb(225, 29, 72));    // Ruby Rose
+        _iconIdle = CreateDotIcon(System.Drawing.Color.FromArgb(107, 114, 128));   // Slate Gray
+
         _notifyIcon = new NotifyIcon
         {
             Visible = true,
-            Text = "EyeCare Crimson - Göz ve Duruş Takipçisi"
+            Text = "EyeCare Crimson - Göz ve Duruş Takipçisi",
+            Icon = _iconNormal
         };
 
         BuildContextMenu();
-        UpdateIcon(TimerMode.Working, false);
-
         _notifyIcon.DoubleClick += (s, e) => _onOpenWindow();
+    }
+
+    private static Icon CreateDotIcon(System.Drawing.Color dotColor)
+    {
+        using var bitmap = new Bitmap(16, 16);
+        using (var g = Graphics.FromImage(bitmap))
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.Clear(System.Drawing.Color.Transparent);
+
+            // Background circle
+            using var bgBrush = new SolidBrush(System.Drawing.Color.FromArgb(10, 10, 14));
+            g.FillEllipse(bgBrush, 0, 0, 15, 15);
+
+            // Crimson Ring
+            using var ringPen = new Pen(dotColor, 2f);
+            g.DrawEllipse(ringPen, 1, 1, 13, 13);
+
+            // Pupil
+            using var dotBrush = new SolidBrush(dotColor);
+            g.FillEllipse(dotBrush, 5, 5, 5, 5);
+        }
+
+        IntPtr hIcon = bitmap.GetHicon();
+        Icon icon = (Icon)Icon.FromHandle(hIcon).Clone();
+        DestroyIcon(hIcon);
+        return icon;
     }
 
     private void BuildContextMenu()
@@ -81,75 +125,71 @@ public class TrayIconManager : IDisposable
         {
             text = text.Substring(0, 60) + "...";
         }
-        _notifyIcon.Text = text;
+
+        if (_lastTooltip != text)
+        {
+            _lastTooltip = text;
+            try
+            {
+                _notifyIcon.Text = text;
+            }
+            catch { }
+        }
     }
 
     public void UpdateIcon(TimerMode mode, bool isIdle)
     {
-        System.Drawing.Color dotColor;
+        Icon targetIcon;
         if (isIdle || mode == TimerMode.Paused)
         {
-            dotColor = System.Drawing.Color.FromArgb(107, 114, 128); // Slate Gray
+            targetIcon = _iconIdle;
         }
         else if (mode == TimerMode.Break)
         {
-            dotColor = System.Drawing.Color.FromArgb(225, 29, 72); // Ruby Rose
+            targetIcon = _iconBreak;
         }
         else if (mode == TimerMode.Overtime)
         {
-            dotColor = System.Drawing.Color.FromArgb(239, 68, 68); // Vivid Red
+            targetIcon = _iconOvertime;
         }
         else
         {
             int rem = _timer.State.RemainingWorkingSeconds;
             int warningThreshold = (_timer.State.Profile == TimerProfile.Rule202020) ? 60 : 10 * 60;
-            if (rem <= warningThreshold)
-            {
-                dotColor = System.Drawing.Color.FromArgb(249, 115, 22); // Orange Flame
-            }
-            else
-            {
-                dotColor = System.Drawing.Color.FromArgb(220, 38, 38); // Crimson Red
-            }
+            targetIcon = (rem <= warningThreshold) ? _iconWarning : _iconNormal;
         }
 
-        // Generate dynamic crisp 16x16 icon
-        using var bitmap = new Bitmap(16, 16);
-        using (var g = Graphics.FromImage(bitmap))
+        if (!ReferenceEquals(_notifyIcon.Icon, targetIcon))
         {
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.Clear(System.Drawing.Color.Transparent);
-
-            // Background circle
-            using var bgBrush = new SolidBrush(System.Drawing.Color.FromArgb(10, 10, 14));
-            g.FillEllipse(bgBrush, 0, 0, 15, 15);
-
-            // Crimson Ring
-            using var ringPen = new Pen(dotColor, 2f);
-            g.DrawEllipse(ringPen, 1, 1, 13, 13);
-
-            // Pupil
-            using var dotBrush = new SolidBrush(dotColor);
-            g.FillEllipse(dotBrush, 5, 5, 5, 5);
+            try
+            {
+                _notifyIcon.Icon = targetIcon;
+            }
+            catch { }
         }
-
-        var oldIcon = _currentIcon;
-        IntPtr hIcon = bitmap.GetHicon();
-        _currentIcon = Icon.FromHandle(hIcon);
-        _notifyIcon.Icon = _currentIcon;
-
-        oldIcon?.Dispose();
     }
 
     public void ShowBalloon(string title, string message, ToolTipIcon icon = ToolTipIcon.Info)
     {
-        _notifyIcon.ShowBalloonTip(4000, title, message, icon);
+        try
+        {
+            _notifyIcon.ShowBalloonTip(4000, title, message, icon);
+        }
+        catch { }
     }
 
     public void Dispose()
     {
-        _notifyIcon.Visible = false;
-        _notifyIcon.Dispose();
-        _currentIcon?.Dispose();
+        try
+        {
+            _notifyIcon.Visible = false;
+            _notifyIcon.Dispose();
+            _iconNormal.Dispose();
+            _iconWarning.Dispose();
+            _iconOvertime.Dispose();
+            _iconBreak.Dispose();
+            _iconIdle.Dispose();
+        }
+        catch { }
     }
 }

@@ -11,7 +11,7 @@ public class EyeCareTimer
     public SessionState State { get; }
 
     public event Action? Tick;
-    public event Action<string, bool>? TimeLimitReached; // message, isCriticalOvertime
+    public event Action<string, bool>? TimeLimitReached;
     public event Action? BreakCompleted;
     public event Action? StateChanged;
 
@@ -29,7 +29,7 @@ public class EyeCareTimer
 
         ApplyProfileDurations();
 
-        _timer = new DispatcherTimer
+        _timer = new DispatcherTimer(DispatcherPriority.Normal)
         {
             Interval = TimeSpan.FromSeconds(1)
         };
@@ -41,7 +41,7 @@ public class EyeCareTimer
         if (State.Profile == TimerProfile.Rule202020)
         {
             State.TargetWorkingSeconds = 20 * 60; // 20 minutes
-            State.TargetBreakSeconds = Settings.EyeRestDurationSeconds; // 20 seconds
+            State.TargetBreakSeconds = Settings.EyeRestDurationSeconds; // 20-30 seconds
         }
         else
         {
@@ -145,37 +145,50 @@ public class EyeCareTimer
 
     private void OnTimerTick(object? sender, EventArgs e)
     {
-        // 1. Idle Detection Check
-        if (Settings.IdleDetectionEnabled)
+        try
         {
-            int idleSeconds = Win32Helper.GetIdleTimeSeconds();
-            State.IdleSeconds = idleSeconds;
-
-            int idleThresholdSeconds = Settings.IdleThresholdMinutes * 60;
-            if (idleSeconds >= idleThresholdSeconds)
+            // 1. Idle Detection Check
+            if (Settings.IdleDetectionEnabled)
             {
-                if (!State.IsIdleAway)
+                int idleSeconds = Win32Helper.GetIdleTimeSeconds();
+                State.IdleSeconds = idleSeconds;
+
+                int idleThresholdSeconds = Settings.IdleThresholdMinutes * 60;
+                if (idleSeconds >= idleThresholdSeconds)
                 {
-                    State.IsIdleAway = true;
-                    StateChanged?.Invoke();
+                    if (!State.IsIdleAway)
+                    {
+                        State.IsIdleAway = true;
+                        StateChanged?.Invoke();
+                    }
+
+                    _idleCounterSeconds++;
+
+                    // If user was away for at least 5 minutes, consider it a natural rest!
+                    if (_idleCounterSeconds >= 5 * 60)
+                    {
+                        ResetSession();
+                        Settings.TodayCompletedBreaks++;
+                        Settings.Save();
+                        _idleCounterSeconds = 0;
+                    }
+
+                    Tick?.Invoke();
+                    return;
                 }
-
-                _idleCounterSeconds++;
-
-                // If user has been away for at least 5 minutes, consider it a natural rest!
-                if (_idleCounterSeconds >= 5 * 60)
+                else
                 {
-                    ResetSession();
-                    Settings.TodayCompletedBreaks++;
-                    Settings.Save();
-                    _idleCounterSeconds = 0;
+                    if (State.IsIdleAway)
+                    {
+                        State.IsIdleAway = false;
+                        _idleCounterSeconds = 0;
+                        StateChanged?.Invoke();
+                    }
                 }
-
-                Tick?.Invoke();
-                return;
             }
             else
             {
+                // When idle detection is disabled, ensure IsIdleAway is immediately cleared
                 if (State.IsIdleAway)
                 {
                     State.IsIdleAway = false;
@@ -183,85 +196,88 @@ public class EyeCareTimer
                     StateChanged?.Invoke();
                 }
             }
-        }
 
-        // 2. Mode logic
-        if (State.Mode == TimerMode.Paused)
-        {
-            Tick?.Invoke();
-            return;
-        }
-
-        if (State.Mode == TimerMode.Break)
-        {
-            State.ElapsedBreakSeconds++;
-            if (State.ElapsedBreakSeconds >= State.TargetBreakSeconds)
+            // 2. Mode logic
+            if (State.Mode == TimerMode.Paused)
             {
-                // Break done!
-                Settings.TodayCompletedBreaks++;
-                Settings.Save();
-                ResetSession();
-                BreakCompleted?.Invoke();
+                Tick?.Invoke();
+                return;
             }
-            Tick?.Invoke();
-            return;
-        }
 
-        // Working or Overtime
-        State.ElapsedWorkingSeconds++;
-
-        _minuteAccumulatorSeconds++;
-        if (_minuteAccumulatorSeconds >= 60)
-        {
-            _minuteAccumulatorSeconds = 0;
-            Settings.TodaySittingMinutes++;
-            Settings.Save();
-        }
-
-        int totalAllowedSeconds = State.TargetWorkingSeconds + State.ExtensionSeconds;
-
-        if (State.ElapsedWorkingSeconds >= totalAllowedSeconds)
-        {
-            if (State.Mode != TimerMode.Overtime)
+            if (State.Mode == TimerMode.Break)
             {
-                State.Mode = TimerMode.Overtime;
-                _overtimeAlertIntervalSeconds = 0;
-                StateChanged?.Invoke();
-
-                string msg;
-                if (State.Profile == TimerProfile.Rule202020)
+                State.ElapsedBreakSeconds++;
+                if (State.ElapsedBreakSeconds >= State.TargetBreakSeconds)
                 {
-                    msg = "20-20-20 Vakti! Gözlerinizi ekrandan ayırıp 20 saniye boyunca en az 6 metre uzağa bakın.";
+                    // Break completed!
+                    Settings.TodayCompletedBreaks++;
+                    Settings.Save();
+                    ResetSession();
+                    BreakCompleted?.Invoke();
+                }
+                Tick?.Invoke();
+                return;
+            }
+
+            // Normal Working or Overtime
+            State.ElapsedWorkingSeconds++;
+
+            _minuteAccumulatorSeconds++;
+            if (_minuteAccumulatorSeconds >= 60)
+            {
+                _minuteAccumulatorSeconds = 0;
+                Settings.TodaySittingMinutes++;
+                Settings.Save();
+            }
+
+            int totalAllowedSeconds = State.TargetWorkingSeconds + State.ExtensionSeconds;
+
+            if (State.ElapsedWorkingSeconds >= totalAllowedSeconds)
+            {
+                if (State.Mode != TimerMode.Overtime)
+                {
+                    State.Mode = TimerMode.Overtime;
+                    _overtimeAlertIntervalSeconds = 0;
+                    StateChanged?.Invoke();
+
+                    string msg;
+                    if (State.Profile == TimerProfile.Rule202020)
+                    {
+                        msg = "20-20-20 Vakti! Gözlerinizi ekrandan ayırıp 20 saniye boyunca en az 6 metre uzağa bakın.";
+                    }
+                    else
+                    {
+                        msg = State.ExtensionSeconds > 0
+                            ? $"Ek süreniz doldu! Toplam {State.ElapsedWorkingSeconds / 60} dakikadır oturuyorsunuz."
+                            : $"Maksimum oturma sınırına ulaştınız! Göz ve omurga sağlığınız için lütfen mola verin.";
+                    }
+
+                    TimeLimitReached?.Invoke(msg, false);
                 }
                 else
                 {
-                    msg = State.ExtensionSeconds > 0
-                        ? $"Ek süreniz doldu! Toplam {State.ElapsedWorkingSeconds / 60} dakikadır oturuyorsunuz."
-                        : $"Maksimum oturma sınırına ulaştınız! Göz ve omurga sağlığınız için lütfen mola verin.";
-                }
+                    _overtimeAlertIntervalSeconds++;
+                    int reminderInterval = (State.Profile == TimerProfile.Rule202020) ? 2 * 60 : 5 * 60;
+                    if (_overtimeAlertIntervalSeconds >= reminderInterval)
+                    {
+                        _overtimeAlertIntervalSeconds = 0;
+                        bool isCritical = State.ElapsedWorkingSeconds >= 75 * 60;
+                        string msg = isCritical
+                            ? $"⚠️ DİKKAT: {State.ElapsedWorkingSeconds / 60} dakikadır aralıksız oturuyorsunuz! Lütfen kalkıp dinlenin."
+                            : (State.Profile == TimerProfile.Rule202020 
+                                ? "Göz Dinlendirme Hatırlatması: 20 saniyelik mola vermeyi unutmayın!" 
+                                : $"Hatırlatma: {State.ElapsedWorkingSeconds / 60} dakikadır oturuyorsunuz. Lütfen mola verin.");
 
-                TimeLimitReached?.Invoke(msg, false);
-            }
-            else
-            {
-                _overtimeAlertIntervalSeconds++;
-                // In 20-20-20 mode, remind every 2 minutes; in hourly mode every 5 minutes
-                int reminderInterval = (State.Profile == TimerProfile.Rule202020) ? 2 * 60 : 5 * 60;
-                if (_overtimeAlertIntervalSeconds >= reminderInterval)
-                {
-                    _overtimeAlertIntervalSeconds = 0;
-                    bool isCritical = State.ElapsedWorkingSeconds >= 75 * 60;
-                    string msg = isCritical
-                        ? $"⚠️ DİKKAT: {State.ElapsedWorkingSeconds / 60} dakikadır aralıksız oturuyorsunuz! Lütfen kalkıp dinlenin."
-                        : (State.Profile == TimerProfile.Rule202020 
-                            ? "Göz Dinlendirme Hatırlatması: 20 saniyelik mola vermeyi unutmayın!" 
-                            : $"Hatırlatma: {State.ElapsedWorkingSeconds / 60} dakikadır oturuyorsunuz. Lütfen mola verin.");
-
-                    TimeLimitReached?.Invoke(msg, isCritical);
+                        TimeLimitReached?.Invoke(msg, isCritical);
+                    }
                 }
             }
+
+            Tick?.Invoke();
         }
-
-        Tick?.Invoke();
+        catch
+        {
+            // Fail-safe: ensure timer never stops ticking
+        }
     }
 }

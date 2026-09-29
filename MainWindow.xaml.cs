@@ -309,21 +309,32 @@ public partial class MainWindow : Window
     private void SetStatusTheme(string pillBg, string pillColor, string pillText,
                                 string timerText, string timerLabel, string arcColor, double arcRatio)
     {
-        PillStatus.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(pillBg));
-        TxtStatus.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(pillColor));
-        DotStatus.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(pillColor));
-        TxtStatus.Text = pillText;
+        try
+        {
+            PillStatus.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(pillBg));
+            TxtStatus.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(pillColor));
+            DotStatus.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(pillColor));
+            TxtStatus.Text = pillText;
 
-        TxtTimer.Text = timerText;
-        TxtTimerLabel.Text = timerLabel;
+            TxtTimer.Text = timerText;
+            TxtTimerLabel.Text = timerLabel;
 
-        SolidColorBrush stroke = new SolidColorBrush((Color)ColorConverter.ConvertFromString(arcColor));
-        GaugeArc.Stroke = stroke;
-        GaugeArc.EndAngle = arcRatio * 360.0;
+            SolidColorBrush stroke = new SolidColorBrush((Color)ColorConverter.ConvertFromString(arcColor));
+            GaugeArc.Stroke = stroke;
+
+            if (double.IsNaN(arcRatio) || double.IsInfinity(arcRatio))
+                arcRatio = 0.0;
+            else
+                arcRatio = Math.Clamp(arcRatio, 0.0, 1.0);
+
+            GaugeArc.EndAngle = arcRatio * 360.0;
+        }
+        catch { }
     }
 
     private static string FormatSeconds(int totalSeconds)
     {
+        if (totalSeconds < 0) totalSeconds = 0;
         int min = totalSeconds / 60;
         int sec = totalSeconds % 60;
         return $"{min:00}:{sec:00}";
@@ -331,41 +342,49 @@ public partial class MainWindow : Window
 
     private void OnTimeLimitReached(string message, bool isCritical)
     {
-        Dispatcher.Invoke(() =>
+        Dispatcher.BeginInvoke(new Action(() =>
         {
-            if (_settings.SoundEnabled)
+            try
             {
-                SoundService.PlayAlertNotification();
+                if (_settings.SoundEnabled)
+                {
+                    SoundService.PlayAlertNotification();
+                }
+
+                if (_activeNotification != null && _activeNotification.IsLoaded)
+                {
+                    _activeNotification.Close();
+                }
+
+                _activeNotification = new NotificationWindow(_timer, message, isCritical);
+                _activeNotification.Show();
+
+                _trayManager.ShowBalloon("EyeCare - Dinlenme Vakti", message);
             }
-
-            if (_activeNotification != null && _activeNotification.IsLoaded)
-            {
-                _activeNotification.Close();
-            }
-
-            _activeNotification = new NotificationWindow(_timer, message, isCritical);
-            _activeNotification.Show();
-
-            _trayManager.ShowBalloon("EyeCare - Dinlenme Vakti", message);
-        });
+            catch { }
+        }));
     }
 
     private void OnBreakCompleted()
     {
-        Dispatcher.Invoke(() =>
+        Dispatcher.BeginInvoke(new Action(() =>
         {
-            if (_settings.SoundEnabled)
+            try
             {
-                SoundService.PlayBreakComplete();
+                if (_settings.SoundEnabled)
+                {
+                    SoundService.PlayBreakComplete();
+                }
+
+                string msg = _timer.State.Profile == TimerProfile.Rule202020
+                    ? "20 saniyelik göz molası tamamlandı! Göz merceğiniz rahatladı."
+                    : "Mola tamamlandı! Gözleriniz ve bedeniniz dinlendi, yeni seans başladı.";
+
+                _trayManager.ShowBalloon("Tebrikler!", msg);
+                UpdateUI();
             }
-
-            string msg = _timer.State.Profile == TimerProfile.Rule202020
-                ? "20 saniyelik göz molası tamamlandı! Göz merceğiniz rahatladı."
-                : "Mola tamamlandı! Gözleriniz ve bedeniniz dinlendi, yeni seans başladı.";
-
-            _trayManager.ShowBalloon("Tebrikler!", msg);
-            UpdateUI();
-        });
+            catch { }
+        }));
     }
 
     private void BtnPin_Click(object sender, RoutedEventArgs e)
