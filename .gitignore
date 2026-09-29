@@ -1,0 +1,20 @@
+# Visual Studio / .NET build outputs
+bin/
+obj/
+publish/
+
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+# Visual Studio files
+.vs/
+.idea/
+.vscode/
+
+# Log files
+*.log
+crash.log
+startup.log
